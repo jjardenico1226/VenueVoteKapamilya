@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kapamilya Venue Vote</title>
+<style>
+  :root {
+    --red: #d6232a;
+    --green: #26994a;
+    --blue: #1565b8;
+    --ink: #1c1d21;
+    --muted: #5d6068;
+    --paper: #faf9f6;
+    --card: #ffffff;
+    --line: #dedcd6;
+    --track: #ecebe6;
+    --danger-bg: #fdecec;
+    --ok-bg: #e9f6ee;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --red: #ff5a60;
+      --green: #4cc577;
+      --blue: #5aa2f0;
+      --ink: #f1f1ee;
+      --muted: #a4a7af;
+      --paper: #131519;
+      --card: #1c1f25;
+      --line: #343842;
+      --track: #2a2e37;
+      --danger-bg: #3a1d1f;
+      --ok-bg: #1b3326;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: ui-rounded, "Avenir Next", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 24px 18px 48px; }
+
+  /* Header */
+  header { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
+  header svg { flex: none; width: 64px; height: 64px; }
+  h1 { margin: 0; font-size: clamp(1.6rem, 5vw, 2.4rem); line-height: 1.1; letter-spacing: -0.02em; font-weight: 800; }
+  .tag { margin: 4px 0 0; color: var(--muted); font-size: 1rem; }
+
+  .when {
+    margin: -6px 0 24px; padding: 14px 18px; border-radius: 14px;
+    border: 2px solid var(--ink); background: var(--card);
+    border-left: 10px solid var(--red);
+  }
+  .when-main { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; font-size: clamp(1.15rem, 3.6vw, 1.5rem); font-weight: 800; letter-spacing: -0.01em; }
+  .when-time { color: var(--blue); }
+  .when-sub { color: var(--muted); font-size: .95rem; margin-top: 2px; }
+
+  .grid { display: grid; gap: 20px; grid-template-columns: 1fr; }
+  @media (min-width: 880px) { .grid { grid-template-columns: 1.05fr 1fr; align-items: start; } }
+
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+  h2 { margin: 0 0 14px; font-size: 1.25rem; letter-spacing: -0.01em; }
+
+  /* Venue buttons */
+  .venues { display: grid; gap: 10px; }
+  .ring { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 5px solid var(--c); display: grid; place-items: center; }
+  .ring::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--c); transform: scale(0); transition: transform .15s; }
+  .venue {
+    display: flex; align-items: center; gap: 16px; width: 100%; text-align: left;
+    border: 2px solid var(--line); border-radius: 16px; padding: 18px;
+    color: var(--ink); background: var(--card); cursor: pointer; min-height: 88px; font-weight: 400;
+    transition: border-color .15s, background-color .15s;
+  }
+  .venue:hover { border-color: var(--c); background: color-mix(in srgb, var(--c) 9%, var(--card)); }
+  .venue:hover .ring::after { transform: scale(1); }
+  .venue:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .venue .go { margin-left: auto; font-weight: 700; color: var(--c); }
+  .vname { font-size: 1.3rem; font-weight: 700; }
+  .vnote { display: block; font-size: .85rem; color: var(--muted); font-weight: 500; }
+
+  .chosen { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; padding: 14px 16px; border-radius: 14px; border: 2px solid var(--c); background: color-mix(in srgb, var(--c) 9%, var(--card)); }
+  .chosen .ring::after { transform: scale(1); }
+  .chosen .vname { font-size: 1.25rem; }
+  .chosen .ghost { margin-left: auto; }
+
+  /* Form */
+  .fields { display: grid; gap: 14px; margin-bottom: 18px; }
+  @media (min-width: 520px) { .fields .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; } }
+  .field { display: grid; gap: 6px; }
+  .field label { font-weight: 600; font-size: .95rem; }
+  input[type=text], input[type=tel], input[type=password] {
+    width: 100%; font: inherit; color: var(--ink); background: var(--paper);
+    border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; min-height: 48px;
+  }
+  input[type=text]:focus-visible, input[type=tel]:focus-visible, input[type=password]:focus-visible {
+    outline: 3px solid var(--blue); outline-offset: 1px; border-color: var(--blue);
+  }
+  .hint { font-size: .85rem; color: var(--muted); }
+
+  button {
+    font: inherit; font-weight: 700; border: 0; border-radius: 12px; cursor: pointer;
+    padding: 14px 20px; min-height: 52px;
+  }
+  button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .primary { width: 100%; background: var(--red); color: #fff; font-size: 1.1rem; }
+  .primary:hover:not(:disabled) { filter: brightness(1.08); }
+  .primary:disabled { background: var(--track); color: var(--muted); cursor: not-allowed; }
+  .ghost { background: transparent; color: var(--ink); border: 2px solid var(--line); min-height: 44px; padding: 8px 16px; }
+  .danger { background: var(--red); color: #fff; min-height: 44px; padding: 8px 16px; }
+
+  .msg { border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; font-weight: 600; }
+  .msg.err { background: var(--danger-bg); color: var(--ink); border: 1px solid var(--red); }
+  .msg.warn { background: var(--track); color: var(--muted); font-weight: 500; font-size: .9rem; }
+  [hidden] { display: none !important; }
+
+  /* Thank you */
+  .thanks { text-align: center; padding: 10px 0; }
+  .thanks .ring { width: 56px; height: 56px; border-width: 9px; margin: 0 auto 14px; }
+  .thanks .ring::after { transform: scale(1); width: 18px; height: 18px; }
+  .thanks h2 { font-size: 1.5rem; }
+  .thanks p { margin: 6px 0; color: var(--muted); }
+
+  /* Results */
+  .chart { display: grid; place-items: center; margin: 4px 0 16px; }
+  .chart svg { width: min(100%, 280px); height: auto; }
+  .chart .arc { transition: stroke-dasharray .8s ease; }
+  @media (prefers-reduced-motion: reduce) { .chart .arc, .ring::after, .venue { transition: none; } }
+  .total-n { font-size: 34px; font-weight: 800; fill: var(--ink); }
+  .total-l { font-size: 12px; fill: var(--muted); }
+  .legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .legend li { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--c); }
+  .legend .nm { font-weight: 700; }
+  .legend .ct { color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+  .legend .pc { font-weight: 800; font-variant-numeric: tabular-nums; margin-left: 8px; color: var(--ink); }
+  .results-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 16px; color: var(--muted); font-size: .85rem; }
+  .leading { margin: 0 0 14px; font-weight: 700; }
+
+  /* Organizer */
+  footer { margin-top: 28px; text-align: center; }
+  .linkbtn { background: none; border: 0; color: var(--muted); text-decoration: underline; min-height: 40px; padding: 6px 10px; font-weight: 500; }
+  #admin { margin-top: 20px; }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; }
+  .tablewrap { overflow-x: auto; margin: 12px 0; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <svg viewBox="0 0 64 64" role="img" aria-label="Kapamilya Venue Vote">
+      <circle cx="32" cy="32" r="28" fill="none" stroke="var(--red)" stroke-width="6" stroke-dasharray="150 26" transform="rotate(-70 32 32)" stroke-linecap="round"/>
+      <circle cx="32" cy="32" r="18" fill="none" stroke="var(--green)" stroke-width="6" stroke-dasharray="94 19" transform="rotate(-70 32 32)" stroke-linecap="round"/>
+      <circle cx="32" cy="32" r="9" fill="none" stroke="var(--blue)" stroke-width="5" stroke-dasharray="46 10" transform="rotate(-70 32 32)" stroke-linecap="round"/>
+      <circle cx="32" cy="32" r="3.5" fill="var(--ink)"/>
+    </svg>
+    <div>
+      <h1>Kapamilya venue vote</h1>
+      <p class="tag">Pili na, Kapamilya! Pick where we gather for the ABS-CBN reunion. One vote per person.</p>
+    </div>
+  </header>
+
+  <div class="when" role="note">
+    <div class="when-main">
+      <time datetime="2026-11-07T18:00">Saturday, November 7, 2026</time>
+      <span class="when-time">6:00 PM</span>
+    </div>
+    <div class="when-sub">Kapamilya ABS-CBN reunion</div>
+  </div>
+
+  <div class="grid">
+
+    <!-- Vote / Thank you -->
+    <section class="panel" aria-labelledby="voteTitle">
+      <div id="formView">
+        <h2 id="voteTitle">Choose your venue</h2>
+        <div id="apiWarn" class="msg warn" hidden>Preview mode: this page isn't connected to Google Sheets yet, so votes here are not saved. Set API_URL in index.html to go live.</div>
+        <div id="error" class="msg err" role="alert" hidden></div>
+
+        <div id="stepVenue">
+          <p class="hint" style="margin:0 0 14px">Tap the venue you want. You'll enter your details next.</p>
+          <div class="venues" id="venueList"></div>
+        </div>
+
+        <form id="voteForm" novalidate hidden>
+          <div class="chosen" id="chosen">
+            <span class="ring"></span>
+            <span class="vname" id="chosenName"></span>
+            <button type="button" class="ghost" id="changeVenue">Change venue</button>
+          </div>
+
+          <div class="fields">
+            <div class="two">
+              <div class="field">
+                <label for="first">First name</label>
+                <input type="text" id="first" autocomplete="given-name" maxlength="40" required>
+              </div>
+              <div class="field">
+                <label for="last">Last name</label>
+                <input type="text" id="last" autocomplete="family-name" maxlength="40" required>
+              </div>
+            </div>
+            <div class="field">
+              <label for="mobile">Mobile number</label>
+              <input type="tel" id="mobile" inputmode="tel" autocomplete="tel" placeholder="0917 123 4567" maxlength="20" required>
+              <span class="hint">Philippine mobile number, e.g. 0917 123 4567 or +63 917 123 4567.</span>
+            </div>
+          </div>
+
+          <button type="submit" class="primary" id="submitBtn" disabled>Cast my vote</button>
+        </form>
+      </div>
+
+      <div id="thanksView" class="thanks" hidden>
+        <div class="ring" id="thanksRing"></div>
+        <h2>Salamat, <span id="thanksName"></span>!</h2>
+        <p>Your vote for <strong id="thanksVenue"></strong> has been counted.</p>
+        <p>Each person can vote once, so you're all set.</p>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section class="panel" aria-labelledby="resTitle">
+      <h2 id="resTitle">Live results</h2>
+      <p class="leading" id="leading" aria-live="polite"></p>
+      <div class="chart">
+        <svg viewBox="0 0 240 240" id="chart" role="img" aria-label="Concentric ring chart of votes per venue"></svg>
+      </div>
+      <ul class="legend" id="legend"></ul>
+      <div class="results-foot">
+        <span id="updated">Loading…</span>
+        <button type="button" class="ghost" id="refreshBtn">Refresh results</button>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    <button type="button" class="linkbtn" id="adminToggle">Organizer access</button>
+  </footer>
+
+  <!-- Organizer -->
+  <section class="panel" id="admin" hidden aria-labelledby="adminTitle">
+    <h2 id="adminTitle">Organizer access</h2>
+    <div id="pinView">
+      <div class="field" style="max-width:280px">
+        <label for="pin">PIN</label>
+        <input type="password" id="pin" inputmode="numeric" autocomplete="off">
+      </div>
+      <div id="pinErr" class="msg err" role="alert" hidden style="margin-top:12px">Wrong PIN. Try again.</div>
+      <div class="row" style="margin-top:12px"><button type="button" class="ghost" id="pinBtn">Unlock</button></div>
+    </div>
+    <div id="listView" hidden>
+      <div class="row">
+        <strong id="voterCount"></strong>
+        <button type="button" class="ghost" id="adminRefresh">Reload list</button>
+        <button type="button" class="ghost" id="adminLock">Lock</button>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Name</th><th>Mobile</th><th>Venue</th><th>Time</th></tr></thead>
+          <tbody id="voterRows"></tbody>
+        </table>
+      </div>
+      <div class="row">
+        <button type="button" class="ghost" id="resetBtn">Reset all votes</button>
+        <span id="resetConfirm" hidden class="row">
+          <span>This deletes every vote. Continue?</span>
+          <button type="button" class="danger" id="resetYes">Yes, delete all votes</button>
+          <button type="button" class="ghost" id="resetNo">Cancel</button>
+        </span>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* =========================================================
+   SETTINGS
+   Paste the Web app URL from Google Apps Script here.
+   It looks like: https://script.google.com/macros/s/AKfycb.../exec
+   The organizer PIN is set in Code.gs (ADMIN_PIN), not here.
+   ========================================================= */
+const API_URL = "https://script.google.com/macros/s/AKfycbx0sGeK2wa3HBZJMx4PStsYgsmzHG53nhmFAGXHv8uU0ulMpHmT8uP8txypfMsU4oaW/exec";
+
+const VENUES = [
+  { id: "kuyas",   name: "Kuya's",  color: "var(--red)" },
+  { id: "talabar", name: "Talabar", color: "var(--green)" },
+  { id: "9501",    name: "9501",    color: "var(--blue)", note: "if available" }
+];
+
+/* ---------- API layer ---------- */
+const hasApi = /^https:\/\/script\.google\.com\/.+\/exec$/.test(API_URL);
+
+async function readJson(res) {
+  const text = await res.text();
+  try { return JSON.parse(text); } catch (e) { throw new Error("NOT_JSON"); }
+}
+async function apiGet(action) {
+  const res = await fetch(API_URL + "?action=" + encodeURIComponent(action) + "&t=" + Date.now(), { redirect: "follow" });
+  return readJson(res);
+}
+// text/plain avoids a CORS preflight, which Apps Script can't answer.
+async function apiPost(body) {
+  const res = await fetch(API_URL, {
+    method: "POST",
+    redirect: "follow",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(body)
+  });
+  return readJson(res);
+}
+function connectError(e) {
+  return e && e.message === "NOT_JSON"
+    ? "The vote server replied with a page instead of data. The Google Apps Script deployment must be set to Who has access: Anyone, and redeployed as a new version."
+    : "Couldn't reach the vote server. Check your connection and try again.";
+}
+
+/* ---------- Preview mode (used only when API_URL isn't set) ---------- */
+const PREVIEW_PIN = "2026";
+const mock = [];
+function mockResults() {
+  const counts = {}; VENUES.forEach(v => counts[v.id] = 0);
+  mock.forEach(r => counts[r.venue]++);
+  return { ok: true, counts, total: mock.length };
+}
+function mockPost(b) {
+  if (b.action === "vote") {
+    const phone = normPhone(b.mobile), key = normName(b.first) + "|" + normName(b.last);
+    if (mock.some(r => r.phone === phone)) return { ok: false, error: "This mobile number has already voted. Each person can vote once." };
+    if (mock.some(r => r.key === key)) return { ok: false, error: b.first.trim() + " " + b.last.trim() + " has already voted. Each person can vote once." };
+    mock.push({ first: b.first.trim(), last: b.last.trim(), phone, key, venue: b.venue, ts: Date.now() });
+    return { ok: true };
+  }
+  if (b.pin !== PREVIEW_PIN) return { ok: false, error: "Wrong PIN." };
+  if (b.action === "adminList") {
+    return { ok: true, voters: mock.slice().reverse().map(r => ({ ts: r.ts, first: r.first, last: r.last, phone: r.phone, venue: (venueById(r.venue) || {}).name })) };
+  }
+  if (b.action === "adminReset") { mock.length = 0; return { ok: true }; }
+  return { ok: false, error: "Unknown action." };
+}
+const getResults = () => hasApi ? apiGet("results") : Promise.resolve(mockResults());
+const post = body => hasApi ? apiPost(body) : Promise.resolve(mockPost(body));
+
+/* ---------- Helpers ---------- */
+const $ = id => document.getElementById(id);
+function normPhone(raw) {
+  let d = String(raw).replace(/\D/g, "");
+  if (d.startsWith("63") && d.length === 12) d = "0" + d.slice(2);
+  else if (d.startsWith("9") && d.length === 10) d = "0" + d;
+  return /^09\d{9}$/.test(d) ? d : null;
+}
+function normName(s) { return s.trim().replace(/\s+/g, " ").toLowerCase(); }
+function esc(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+const venueById = id => VENUES.find(v => v.id === id);
+
+/* ---------- Step 1: venue buttons ---------- */
+const list = $("venueList");
+VENUES.forEach(v => {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "venue";
+  btn.style.setProperty("--c", v.color);
+  btn.innerHTML =
+    '<span class="ring"></span><span class="vname">' + esc(v.name) +
+    (v.note ? '<span class="vnote">(' + esc(v.note) + ')</span>' : '') + '</span>' +
+    '<span class="go">Vote</span>';
+  btn.addEventListener("click", () => chooseVenue(v.id));
+  list.appendChild(btn);
+});
+
+/* ---------- Step 1 -> Step 2 ---------- */
+let chosenVenue = null;
+function chooseVenue(id) {
+  chosenVenue = id;
+  const v = venueById(id);
+  $("chosen").style.setProperty("--c", v.color);
+  $("chosenName").innerHTML = esc(v.name) + (v.note ? '<span class="vnote">(' + esc(v.note) + ')</span>' : '');
+  $("stepVenue").hidden = true;
+  $("voteForm").hidden = false;
+  $("voteTitle").textContent = "Your details";
+  hideError(); updateButton();
+  $("first").focus();
+}
+$("changeVenue").addEventListener("click", () => {
+  chosenVenue = null;
+  $("voteForm").hidden = true;
+  $("stepVenue").hidden = false;
+  $("voteTitle").textContent = "Choose your venue";
+  hideError();
+});
+
+/* ---------- Form validity ---------- */
+function formReady() {
+  return !!chosenVenue && $("first").value.trim().length > 0 &&
+         $("last").value.trim().length > 0 && !!normPhone($("mobile").value);
+}
+function updateButton() { $("submitBtn").disabled = !formReady(); }
+["first", "last", "mobile"].forEach(id => $(id).addEventListener("input", () => { hideError(); updateButton(); }));
+function showError(t) { const e = $("error"); e.textContent = t; e.hidden = false; }
+function hideError() { $("error").hidden = true; }
+
+/* ---------- Submit ---------- */
+let submitting = false;
+$("voteForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  if (submitting) return;
+  hideError();
+  if (!formReady()) {
+    if (!normPhone($("mobile").value)) showError("Enter a valid Philippine mobile number, like 0917 123 4567.");
+    return;
+  }
+  submitting = true;
+  const btn = $("submitBtn");
+  btn.disabled = true; btn.textContent = "Saving your vote…";
+
+  try {
+    const res = await post({
+      action: "vote",
+      first: $("first").value,
+      last: $("last").value,
+      mobile: $("mobile").value,
+      venue: chosenVenue
+    });
+    if (!res || !res.ok) {
+      showError((res && res.error) || "Your vote couldn't be saved. Please try again.");
+    } else {
+      const v = venueById(chosenVenue);
+      $("thanksName").textContent = (res.first || $("first").value).trim();
+      $("thanksVenue").textContent = v.name;
+      $("thanksRing").style.setProperty("--c", v.color);
+      $("formView").hidden = true;
+      $("thanksView").hidden = false;
+      await loadResults();
+    }
+  } catch (e) {
+    showError("Your vote couldn't be saved. " + connectError(e));
+  }
+  submitting = false;
+  btn.textContent = "Cast my vote";
+  updateButton();
+});
+
+/* ---------- Results ---------- */
+const RADII = [100, 76, 52];
+const SVGNS = "http://www.w3.org/2000/svg";
+
+function drawChart(counts, total) {
+  const svg = $("chart");
+  svg.innerHTML = "";
+  VENUES.forEach((v, i) => {
+    const r = RADII[i], C = 2 * Math.PI * r;
+    const track = document.createElementNS(SVGNS, "circle");
+    track.setAttribute("cx", 120); track.setAttribute("cy", 120); track.setAttribute("r", r);
+    track.setAttribute("fill", "none"); track.setAttribute("stroke", "var(--track)"); track.setAttribute("stroke-width", 18);
+    svg.appendChild(track);
+
+    const arc = document.createElementNS(SVGNS, "circle");
+    arc.setAttribute("class", "arc");
+    arc.setAttribute("cx", 120); arc.setAttribute("cy", 120); arc.setAttribute("r", r);
+    arc.setAttribute("fill", "none"); arc.setAttribute("stroke", v.color); arc.setAttribute("stroke-width", 18);
+    arc.setAttribute("transform", "rotate(-90 120 120)");
+    arc.setAttribute("stroke-dasharray", "0 " + C);
+    svg.appendChild(arc);
+    const pct = total ? counts[v.id] / total : 0;
+    requestAnimationFrame(() => requestAnimationFrame(() => arc.setAttribute("stroke-dasharray", (pct * C) + " " + C)));
+  });
+  const n = document.createElementNS(SVGNS, "text");
+  n.setAttribute("x", 120); n.setAttribute("y", 124); n.setAttribute("text-anchor", "middle"); n.setAttribute("class", "total-n");
+  n.textContent = total;
+  const l = document.createElementNS(SVGNS, "text");
+  l.setAttribute("x", 120); l.setAttribute("y", 142); l.setAttribute("text-anchor", "middle"); l.setAttribute("class", "total-l");
+  l.textContent = total === 1 ? "vote" : "votes";
+  svg.appendChild(n); svg.appendChild(l);
+}
+
+async function loadResults() {
+  try {
+    const data = await getResults();
+    if (!data || !data.ok) { $("updated").textContent = (data && data.error) || "Couldn't load results."; return; }
+    const counts = data.counts, total = data.total;
+    drawChart(counts, total);
+
+    $("legend").innerHTML = VENUES.map(v => {
+      const c = counts[v.id] || 0;
+      const pct = total ? Math.round(c / total * 100) : 0;
+      return '<li style="--c:' + v.color + '"><span class="dot"></span><span class="nm">' + esc(v.name) +
+        (v.note ? ' <span class="hint">(' + esc(v.note) + ')</span>' : '') + '</span>' +
+        '<span class="ct">' + c + (c === 1 ? " vote" : " votes") +
+        '<span class="pc">' + pct + '%</span></span></li>';
+    }).join("");
+
+    const max = Math.max.apply(null, VENUES.map(v => counts[v.id] || 0));
+    const leaders = VENUES.filter(v => (counts[v.id] || 0) === max);
+    $("leading").textContent = !total ? "No votes yet. Be the first!" :
+      leaders.length === 1 ? leaders[0].name + " is leading." :
+      "Tied: " + leaders.map(v => v.name).join(" and ") + ".";
+    $("updated").textContent = "Updated " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  } catch (e) {
+    $("updated").textContent = connectError(e);
+  }
+}
+$("refreshBtn").addEventListener("click", loadResults);
+setInterval(() => { if (!document.hidden) loadResults(); }, 20000);
+
+/* ---------- Organizer ---------- */
+let adminPin = null;
+$("adminToggle").addEventListener("click", () => {
+  const a = $("admin"); a.hidden = !a.hidden;
+  if (!a.hidden) { a.scrollIntoView({ behavior: "smooth" }); if (!adminPin) $("pin").focus(); }
+});
+$("pinBtn").addEventListener("click", tryPin);
+$("pin").addEventListener("keydown", e => { if (e.key === "Enter") tryPin(); });
+
+async function tryPin() {
+  const pin = $("pin").value;
+  $("pinErr").hidden = true;
+  try {
+    const res = await post({ action: "adminList", pin });
+    if (!res || !res.ok) { $("pinErr").hidden = false; return; }
+    adminPin = pin; $("pin").value = "";
+    $("pinView").hidden = true; $("listView").hidden = false;
+    renderVoters(res.voters);
+  } catch (e) {
+    $("pinErr").textContent = "Couldn't reach the server. Try again."; $("pinErr").hidden = false;
+  }
+}
+$("adminLock").addEventListener("click", () => {
+  adminPin = null; $("listView").hidden = true; $("pinView").hidden = false; $("voterRows").innerHTML = "";
+  $("pinErr").textContent = "Wrong PIN. Try again.";
+});
+$("adminRefresh").addEventListener("click", loadVoters);
+
+async function loadVoters() {
+  try {
+    const res = await post({ action: "adminList", pin: adminPin });
+    if (res && res.ok) renderVoters(res.voters);
+  } catch (e) {}
+}
+function renderVoters(voters) {
+  $("voterCount").textContent = voters.length + (voters.length === 1 ? " voter" : " voters");
+  $("voterRows").innerHTML = voters.length ? voters.map(r =>
+    "<tr><td>" + esc(r.first + " " + r.last) + "</td><td>" + esc(r.phone) + "</td><td>" + esc(r.venue || "") + "</td><td>" +
+    esc(r.ts ? new Date(r.ts).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "") +
+    "</td></tr>").join("") : '<tr><td colspan="4">No votes yet.</td></tr>';
+}
+
+$("resetBtn").addEventListener("click", () => { $("resetBtn").hidden = true; $("resetConfirm").hidden = false; });
+$("resetNo").addEventListener("click", () => { $("resetConfirm").hidden = true; $("resetBtn").hidden = false; });
+$("resetYes").addEventListener("click", async () => {
+  try { await post({ action: "adminReset", pin: adminPin }); } catch (e) {}
+  $("resetConfirm").hidden = true; $("resetBtn").hidden = false;
+  await loadVoters(); await loadResults();
+});
+
+/* ---------- Init ---------- */
+if (!hasApi) $("apiWarn").hidden = false;
+loadResults();
+</script>
+</body>
+</html>
